@@ -111,11 +111,9 @@ df_af_2 = diff_pos_to_acc(df_xf_2)
 
 time_array_1, x_array_1 = solve_for_x(df_af_1)
 a_1 = df_af_1['Versnelling'].to_numpy()
-scale_1 = a_1.max() / x_array_1.max()
-plot_response_vs_acc(time_array_1, x_array_1 * scale_1, a_1, "Versnellingsprofiel 1")
+plot_response_vs_acc(time_array_1, x_array_1, a_1, "Versnellingsprofiel 1")
 
 time_array_2, x_array_2 = solve_for_x(df_af_2)
 a_2 = df_af_2['Versnelling'].to_numpy()
-scale_2 = a_2.max() / x_array_2.max()
-plot_response_vs_acc(time_array_2, x_array_2 * scale_2, a_2, "Versnellingsprofiel 2")
+plot_response_vs_acc(time_array_2, x_array_2, a_2, "Versnellingsprofiel 2")
 
