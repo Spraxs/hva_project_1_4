@@ -126,9 +126,6 @@ def plot_acc_with_scaled_response(time_array, response_array_1, response_array_2
     axs[0].set_xlabel('Tijd (s)')
     axs[0].set_ylabel('n.v.t')
     axs[0].legend()
-    axs[0].set_xlim(0.002, 0.013)
-    # axs[0].set_ylim(-0.03, 16)
-    # axs[0].set_ylim(-0.03, 1)
 
     axs[1].plot(time_array, response_array_2, label='Respons (x)')
     axs[1].plot(time_array, af_array_2, label='Versnelling (m/s^2)')
