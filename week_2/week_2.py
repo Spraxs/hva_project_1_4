@@ -116,22 +116,22 @@ def plot_response_vs_acc(time_array, response_array, df_xf, df_vf, af_array, nam
     plt.show()
 
 
-def plot_acc_with_scaled_response(time_array, response_array_1, response_array_2, af_array_1, af_array_2, name):
+def plot_acc_with_ideal_response(time_array, response_array_1, response_array_2, af_array_1, af_array_2, name):
     fig, axs = plt.subplots(2, 1, figsize=(10, 5))
     fig.subplots_adjust(hspace=1)
 
-    axs[0].plot(time_array, response_array_1, label='Respons (x)')
-    axs[0].plot(time_array, af_array_1, label='Versnelling (m/s^2)')
+    axs[0].plot(time_array, response_array_1, label='Huidige respons')
+    axs[0].plot(time_array, m * af_array_1 / k, label='Ideale respons')
     axs[0].set_title('Profiel 1')
     axs[0].set_xlabel('Tijd (s)')
-    axs[0].set_ylabel('n.v.t')
+    axs[0].set_ylabel('x (m)')
     axs[0].legend()
 
-    axs[1].plot(time_array, response_array_2, label='Respons (x)')
-    axs[1].plot(time_array, af_array_2, label='Versnelling (m/s^2)')
+    axs[1].plot(time_array, response_array_2, label='Huidige respons')
+    axs[1].plot(time_array, m * af_array_2 / k, label='Ideale respons')
     axs[1].set_title('Profiel 2')
     axs[1].set_xlabel('Tijd (s)')
-    axs[1].set_ylabel('n.v.t')
+    axs[1].set_ylabel('x (m)')
     axs[1].legend()
 
     # Adding title and labels to the graph
@@ -153,4 +153,4 @@ a_2 = df_af_2['Versnelling'].to_numpy()
 scale_2 = a_2.max() / response_array_2.max()
 # plot_response_vs_acc(time_array_2, response_array_2, df_xf_2, df_vf_2, a_2, "Versnellingsprofiel 2")
 
-plot_acc_with_scaled_response(time_array_1, response_array_1 * scale_1, response_array_2 * scale_2, a_1, a_2, 'Respons & versnelling tegen tijd')
+plot_acc_with_ideal_response(time_array_1, response_array_1, response_array_2, a_1, a_2, 'Respons & ideale respons tegen tijd')
