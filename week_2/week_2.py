@@ -1,15 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
-# veerconstante, k (N/m)
-k = 40
-
-# massa, m (kg)
-m = 1.845 * 10 ** -6
-
-# gamma, c (kg/s)
-c = 0.042953
+import ResultHolder as result
 
 colNames = ['Tijd', 'Afstand']
 df_xf_1 = pd.read_csv("../posities_1_Team_B6.txt", names=colNames, delimiter="   ")
@@ -42,7 +34,7 @@ def diff_pos_to_acc(df_xf):
 
 # TODO Better function naming
 # 𝑚𝑥̈+ 𝛾𝑥̇ + 𝑘𝑥 = 𝑚𝑥̈_f
-def solve_for_x(df_af):
+def solve_for_x(df_af, c, m, k):
     # tijd
     time_array = df_af['Tijd'].to_numpy()
     dt = np.diff(time_array)[0]
@@ -85,29 +77,20 @@ def plot_response(time_array, x_array, name):
     plt.show()
 
 
-def plot_response_vs_acc(time_array, response_array, df_xf, df_vf, af_array, name):
-    fig, axs = plt.subplots(2, 1, figsize=(10, 5))
+def plot_acc_with_ideal_response(time_array, _results, name):
+    fig, axs = plt.subplots(len(results), 1, figsize=(10, 5))
     fig.subplots_adjust(hspace=1)
-
-    # axs[0].plot(df_xf['Tijd'], df_xf['Afstand'])
-    # axs[0].set_title('Afstand tegen tijd')
-    # axs[0].set_xlabel('Tijd (s)')
-    # axs[0].set_ylabel('Afstand (m)')
-    #
-    # axs[1].plot(df_vf['Tijd'], df_vf['Snelheid'])
-    # axs[1].set_title('Snelheid tegen tijd')
-    # axs[1].set_xlabel('Tijd (s)')
-    # axs[1].set_ylabel('Snelheid (m/s)')
-
-    axs[0].plot(time_array, af_array)
-    axs[0].set_title('Versnelling tegen tijd')
-    axs[0].set_xlabel('Tijd (s)')
-    axs[0].set_ylabel('Versnelling (m/s²)')
-
-    axs[1].plot(time_array, response_array)
-    axs[1].set_title('Respons tegen tijd')
-    axs[1].set_xlabel('Tijd (s)')
-    axs[1].set_ylabel('Respons (m)')
+    for i in range(0, len(_results)):
+        r = _results[i]
+        axs[i].plot(time_array, r.response_array, label='Originele respons')
+        # TODO Un-comment:
+        # axs[i].plot(time_array, r.response_edited, label='Kritisch gedempte respons')
+        axs[i].plot(time_array, r.response_edited_with_k, label='k & gamma respons')
+        axs[i].plot(time_array, m * r.af_array / k, label='Ideale respons')
+        axs[i].set_title('Profiel ' + str(i + 1))
+        axs[i].set_xlabel('Tijd (s)')
+        axs[i].set_ylabel('x (m)')
+        axs[i].legend()
 
     # Adding title and labels to the graph
     plt.suptitle(name)
@@ -115,42 +98,31 @@ def plot_response_vs_acc(time_array, response_array, df_xf, df_vf, af_array, nam
     # Displaying the graph
     plt.show()
 
+# veerconstante, k (N/m)
+# massa, m (kg)
+# gamma, c (kg/s)
+c=0.042953
+kritisch_gedempt_c = 1.59*10**(-8)
+m=1.845 * 10 ** -6
+k=40
+k_edited=45
 
-def plot_acc_with_ideal_response(time_array, response_array_1, response_array_2, af_array_1, af_array_2, name):
-    fig, axs = plt.subplots(2, 1, figsize=(10, 5))
-    fig.subplots_adjust(hspace=1)
-
-    axs[0].plot(time_array, response_array_1, label='Huidige respons')
-    axs[0].plot(time_array, m * af_array_1 / k, label='Ideale respons')
-    axs[0].set_title('Profiel 1')
-    axs[0].set_xlabel('Tijd (s)')
-    axs[0].set_ylabel('x (m)')
-    axs[0].legend()
-
-    axs[1].plot(time_array, response_array_2, label='Huidige respons')
-    axs[1].plot(time_array, m * af_array_2 / k, label='Ideale respons')
-    axs[1].set_title('Profiel 2')
-    axs[1].set_xlabel('Tijd (s)')
-    axs[1].set_ylabel('x (m)')
-    axs[1].legend()
-
-    # Adding title and labels to the graph
-    plt.suptitle(name)
-
-    # Displaying the graph
-    plt.show()
-
+# TODO Clean redundant variable (like time_array_1)
 df_vf_1, df_af_1 = diff_pos_to_acc(df_xf_1)
+time_array_1, response_array = solve_for_x(df_af_1, c=c, m=m, k=k)
+time_array_1, response_array_edited = solve_for_x(df_af_1, c=kritisch_gedempt_c, m=m, k=k)
+time_array_1, response_array_edited_with_k = solve_for_x(df_af_1, c=kritisch_gedempt_c, m=m, k=k_edited)
+af_array = df_af_1['Versnelling'].to_numpy()
+
+result_1 = result.Holder(response_array, response_array_edited, response_array_edited_with_k, af_array)
+
 df_vf_2, df_af_2 = diff_pos_to_acc(df_xf_2)
+time_array_1, response_array = solve_for_x(df_af_2, c=c, m=m, k=k)
+time_array_1, response_array_edited = solve_for_x(df_af_2, c=kritisch_gedempt_c, m=m, k=k)
+time_array_1, response_array_edited_with_k = solve_for_x(df_af_2, c=kritisch_gedempt_c, m=m, k=k_edited)
+af_array = df_af_2['Versnelling'].to_numpy()
+result_2 = result.Holder(response_array, response_array_edited, response_array_edited_with_k, af_array)
 
-time_array_1, response_array_1 = solve_for_x(df_af_1)
-a_1 = df_af_1['Versnelling'].to_numpy()
-scale_1 = a_1.max() / response_array_1.max()
-# plot_response_vs_acc(time_array_1, response_array_1, df_xf_1, df_vf_1, a_1, "Versnellingsprofiel 1")
+results = [result_1, result_2]
 
-time_array_2, response_array_2 = solve_for_x(df_af_2)
-a_2 = df_af_2['Versnelling'].to_numpy()
-scale_2 = a_2.max() / response_array_2.max()
-# plot_response_vs_acc(time_array_2, response_array_2, df_xf_2, df_vf_2, a_2, "Versnellingsprofiel 2")
-
-plot_acc_with_ideal_response(time_array_1, response_array_1, response_array_2, a_1, a_2, 'Respons & ideale respons tegen tijd')
+plot_acc_with_ideal_response(time_array_1, results, 'Respons & ideale respons tegen tijd')
