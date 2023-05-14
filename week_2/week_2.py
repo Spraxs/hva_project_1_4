@@ -7,6 +7,15 @@ colNames = ['Tijd', 'Afstand']
 df_xf_1 = pd.read_csv("../posities_1_Team_B6.txt", names=colNames, delimiter="   ")
 df_xf_2 = pd.read_csv("../posities_2_Team_B6.txt", names=colNames, delimiter="   ")
 
+# veerconstante, k (N/m)
+# massa, m (kg)
+# gamma, c (kg/s)
+k = 40
+k_edited = 45
+m = 1.845 * 10 ** -6
+c = 0.042953
+kritisch_gedempt_c = 1.59 * 10 ** (-8)
+
 
 def diff_pos_to_acc(df_xf):
     dx_array = df_xf['Afstand'].diff()
@@ -32,36 +41,34 @@ def diff_pos_to_acc(df_xf):
     return df_vf, df_af
 
 
-# TODO Better function naming
-# 𝑚𝑥̈+ 𝛾𝑥̇ + 𝑘𝑥 = 𝑚𝑥̈_f
-def solve_for_x(df_af, c, m, k):
-    # tijd
-    time_array = df_af['Tijd'].to_numpy()
+# Solving: 𝑚𝑥̈+ 𝛾𝑥̇ + 𝑘𝑥 = 𝑚𝑥̈_f
+def simulate_accelerometer(time_array, af_array, _c, _m, _k):
     dt = np.diff(time_array)[0]
 
-    # begin waardes
+    # Boundary conditions
     x0 = 0
     v0 = 0
 
-    # positie en eerste stap
+    # Array with boundary conditions
     x_array = np.zeros(len(time_array))
     v_array = np.zeros(len(time_array))
 
     x_array[0] = x0
     x_array[0] = v0
 
+    # Solve numerically
     for i in range(0, len(time_array) - 1):
         x = x_array[i]
         v = v_array[i]
-        af = df_af['Versnelling'].iloc[i]
+        af = af_array[i]
         # v'(t) = ((m*af - c * v - k * x) / m)
         # v(t+dt) = v(t) + dt * v'(t)
-        v_array[i + 1] = v + dt * ((- c * v - k * x + m * af) / m)
+        v_array[i + 1] = v + dt * ((- _c * v - _k * x + _m * af) / _m)
 
         # x(t+dt) = x(t) + dt * v(t)
         x_array[i + 1] = x + dt * v
 
-    return time_array, x_array
+    return x_array
 
 
 def plot_response(time_array, x_array, name):
@@ -77,16 +84,18 @@ def plot_response(time_array, x_array, name):
     plt.show()
 
 
-def plot_acc_with_ideal_response(time_array, _results, name):
+def plot_acc_with_ideal_response(_results, name):
     fig, axs = plt.subplots(len(results), 1, figsize=(10, 5))
     fig.subplots_adjust(hspace=1)
     for i in range(0, len(_results)):
         r = _results[i]
-        axs[i].plot(time_array, r.response_array, label='Originele respons')
-        # TODO Un-comment:
-        # axs[i].plot(time_array, r.response_edited, label='Kritisch gedempte respons')
-        axs[i].plot(time_array, r.response_edited_with_k, label='k & gamma respons')
-        axs[i].plot(time_array, m * r.af_array / k, label='Ideale respons')
+        response_ideal = m * r.af_array / k
+
+        axs[i].plot(r.time_array, r.response_array, label='Originele respons')
+        # axs[i].plot(r.time_array, r.response_edited, label='Kritisch gedempte respons')
+        axs[i].plot(r.time_array, r.response_edited_with_k, label='k & gamma respons')
+        axs[i].plot(r.time_array, response_ideal, label='Ideale respons')
+
         axs[i].set_title('Profiel ' + str(i + 1))
         axs[i].set_xlabel('Tijd (s)')
         axs[i].set_ylabel('x (m)')
@@ -98,31 +107,22 @@ def plot_acc_with_ideal_response(time_array, _results, name):
     # Displaying the graph
     plt.show()
 
-# veerconstante, k (N/m)
-# massa, m (kg)
-# gamma, c (kg/s)
-c=0.042953
-kritisch_gedempt_c = 1.59*10**(-8)
-m=1.845 * 10 ** -6
-k=40
-k_edited=45
 
-# TODO Clean redundant variable (like time_array_1)
-df_vf_1, df_af_1 = diff_pos_to_acc(df_xf_1)
-time_array_1, response_array = solve_for_x(df_af_1, c=c, m=m, k=k)
-time_array_1, response_array_edited = solve_for_x(df_af_1, c=kritisch_gedempt_c, m=m, k=k)
-time_array_1, response_array_edited_with_k = solve_for_x(df_af_1, c=kritisch_gedempt_c, m=m, k=k_edited)
-af_array = df_af_1['Versnelling'].to_numpy()
+def calculate_result(df_xf):
+    df_vf, df_af = diff_pos_to_acc(df_xf)
 
-result_1 = result.Holder(response_array, response_array_edited, response_array_edited_with_k, af_array)
+    time_array = df_af['Tijd'].to_numpy()
+    af_array = df_af['Versnelling'].to_numpy()
 
-df_vf_2, df_af_2 = diff_pos_to_acc(df_xf_2)
-time_array_1, response_array = solve_for_x(df_af_2, c=c, m=m, k=k)
-time_array_1, response_array_edited = solve_for_x(df_af_2, c=kritisch_gedempt_c, m=m, k=k)
-time_array_1, response_array_edited_with_k = solve_for_x(df_af_2, c=kritisch_gedempt_c, m=m, k=k_edited)
-af_array = df_af_2['Versnelling'].to_numpy()
-result_2 = result.Holder(response_array, response_array_edited, response_array_edited_with_k, af_array)
+    response_array = simulate_accelerometer(time_array, af_array, c, m, k)
+    response_array_edited = simulate_accelerometer(time_array, af_array, kritisch_gedempt_c, m, k)
+    response_array_edited_with_k = simulate_accelerometer(time_array, af_array, kritisch_gedempt_c, m, k_edited)
 
+    return result.Holder(time_array, response_array, response_array_edited, response_array_edited_with_k, af_array)
+
+
+result_1 = calculate_result(df_xf_1)
+result_2 = calculate_result(df_xf_2)
 results = [result_1, result_2]
 
-plot_acc_with_ideal_response(time_array_1, results, 'Respons & ideale respons tegen tijd')
+plot_acc_with_ideal_response(results, 'Responsen tegen tijd')
