@@ -2,8 +2,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 colNames = ['Tijd', 'Afstand']
-df_x_1 = pd.read_csv("posities_1_Team_B6.txt", names=colNames, delimiter="   ")
-df_x_2 = pd.read_csv("posities_2_Team_B6.txt", names=colNames, delimiter="   ")
+df_x_1 = pd.read_csv("../posities_1_Team_B6.txt", names=colNames, delimiter="   ")
+df_x_2 = pd.read_csv("../posities_2_Team_B6.txt", names=colNames, delimiter="   ")
 
 
 def plot(df_x, name):
