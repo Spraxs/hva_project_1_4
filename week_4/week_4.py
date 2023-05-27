@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-# Solving: 𝑚𝑥̈+ 𝛾𝑥̇ + 𝑘𝑥 = F_max * sin(2πft)
+# Solving: 𝑚𝑥̈+ 𝛾𝑥̇ + 𝑘𝑥 = F_max
 def simulate_accelerometer(t_array, frequency, force_max, _c, _m, _k, delta_time):
     # Boundary conditions
     x0 = 0
@@ -22,7 +22,8 @@ def simulate_accelerometer(t_array, frequency, force_max, _c, _m, _k, delta_time
         t = t_array[i]
         # v'(t) = ((F - c * v - k * x) / m)
         # v(t+dt) = v(t) + dt * v'(t)
-        v_array[i + 1] = v + delta_time * ((force_max * np.sin(2*np.pi*frequency*t) - _c * v - _k * x) / _m)
+        force = force_max * np.sin(2*np.pi*frequency*t)
+        v_array[i + 1] = v + delta_time * ((force - _c * v - _k * x - x**3) / _m)
 
         # x(t+dt) = x(t) + dt * v(t)
         x_array[i + 1] = x + delta_time * v
@@ -34,21 +35,28 @@ def simulate_accelerometer(t_array, frequency, force_max, _c, _m, _k, delta_time
 # massa, m (kg)
 # gamma, c (kg/s)
 # amplitude, F_max (N)
+# m = 5.1e-11  # massa in kg
+# k = 0.2013  # veerconstante in N/m
+# gamma = 4.9299e-7  # dempingsconstante in kg/s
+# F_max = 60e-9  # amplitude van de kracht in N
+
 k = 0.2013
 m = 5.1 * 10 ** -9
-c = 4.9299 * 10 ** -7
+gamma = 4.9299 * 10 ** -7
 F_max = 60 * 10 ** -9
 
-f = 1 / (2 * np.pi * np.sqrt(m/k))
+f_res = 1 / (2 * np.pi * np.sqrt(m / k))  # resonantiefrequentie
 
-t_max = 0.005
-N_steps = 100+1
-time_array = np.linspace(0, t_max, N_steps)
-dt = t_max/(N_steps-1)
+# Simulatie instellingen
+tmax = 50 * (1 / f_res)  # Totale simulatieduur
+dt = tmax / 3000  # Tijdstap (aantal tijdstappen aanpassen voor gewenste nauwkeurigheid)
+
+# Array met tijdstappen
+time_array = np.arange(0, tmax, dt)
 
 print(time_array)
 
-response_array = simulate_accelerometer(time_array, f, F_max, c, m, k, dt)
+response_array = simulate_accelerometer(time_array, f_res, F_max, gamma, m, k, dt)
 
 # Plotting the graph
 plt.plot(time_array, response_array)
