@@ -15,6 +15,7 @@ dt = tmax / 500  # Tijdstap (aantal tijdstappen aanpassen voor gewenste nauwkeur
 # Array met tijdstappen
 t = np.arange(0, tmax, dt)
 
+# gamma += gamma * 0.2
 
 def simulate(_f_res):
     # Array met krachten (sinusvormige oscillatie)
@@ -49,9 +50,10 @@ def simulate(_f_res):
 plt.plot(t, simulate(f_res))
 plt.xlabel('Tijd (s)')
 plt.ylabel('Uitwijking (m)')
-plt.title('Uitwijking van de massa (Duffing-model met Runge-Kutta-methode)')
+plt.title('Uitwijking van de massa')
 plt.show()
 
+print('Amplitude max: ' + str(np.max(simulate(f_res))))
 
 def simulate_frequencies(num_frequencies, frequency_step_size):
     # Frequenties rond de resonantiefrequentie
@@ -65,7 +67,7 @@ def simulate_frequencies(num_frequencies, frequency_step_size):
 
 
 # Amplitude x, against frequencies
-frequencies, amplitudes = simulate_frequencies(100, 0.8)
+frequencies, amplitudes = simulate_frequencies(10000, 0.8)
 
 # Bepaal de FWHM
 half_max_amplitude = 0.5 * np.max(amplitudes)
