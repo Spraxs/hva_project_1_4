@@ -13,13 +13,27 @@ f_coriolis = 8e-12
 k = 3.095
 
 
+def rotatie_snelheid_array(t):
+    min_value = 2
+    max_value = 5
+    array = np.zeros(len(t))
+    for i in range(0, len(t)):
+        if i < len(t) / 8 or i > len(t) * 3 / 8:
+            array[i] = min_value
+        else:
+            array[i] = max_value
+    return array
+
+
 # resonantie frequentie = drive frequentie
-def force_coriolis_function(t):
-    # Ω (rad / s)
-    rotatie_snelheid = 10 / 60
+def force_coriolis_function(t, _rotatie_snelheid_arr):
     # (rad/s)
     hoek_snelheid = 2 * np.pi * nu_drive
-    return f_coriolis * rotatie_snelheid * np.cos(hoek_snelheid * t)
+    array = np.zeros(len(t))
+    for i in range(0, len(t)):
+        # Ω (rad / s)
+        array[i] = f_coriolis * _rotatie_snelheid_arr[i] * np.cos(hoek_snelheid * t[i])
+    return array
 
 
 def simulation_timeline():
@@ -77,28 +91,23 @@ def plot_f(t, kracht):
     plt.show()
 
 
-time_array, dt = simulation_timeline()
-coriolis_force_array = force_coriolis_function(time_array)
+def plot_rotatiesnelheid(t, rotatie_snelheid):
+    plt.plot(t, rotatie_snelheid)
+    plt.xlabel('Tijd (s)')
+    plt.ylabel('Rotatiesnelheid (rad/s)')
+    plt.title('Rotatie profiel')
+    plt.show()
 
-# plot_f(time_array, coriolis_force_array)
+
+time_array, dt = simulation_timeline()
+rotatie_snelheid_arr = rotatie_snelheid_array(time_array)
+plot_rotatiesnelheid(time_array, rotatie_snelheid_arr)
+
+coriolis_force_array = force_coriolis_function(time_array, rotatie_snelheid_arr)
 
 solved_differential_array = solve_differential_equation(time_array, dt, coriolis_force_array)
-
 
 print("Time: " + str(len(time_array)) + " vs " + str(len(solved_differential_array)))
 plot_simulation(t=time_array, uitwijking=solved_differential_array)
 
 print(solved_differential_array)
-
-
-# # Get the time array and delta time
-# time_array, delta_time = simulation_timeline()
-#
-# # Example data
-# data = np.sin(2 * np.pi * 10 * time_array)
-#
-# # Plotting
-# fig, ax = plt.subplots()
-# ax.plot(time_array, solved_differential_array)
-#
-# plt.show()
