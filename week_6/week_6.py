@@ -73,11 +73,11 @@ def solve_differential_equation(t_array, delta_time, force_coriolis_array):
     return x_array
 
 
-def plot_simulation(t, uitwijking, _response_start_index, _response_stop_index):
+def plot_simulation(t, uitwijking):
     print("Totaal tijd: " + str(t[-1]))
     # Plot de uitwijking van de massa
     plt.plot(t, uitwijking, label="Geheel")
-    plt.plot(t[_response_start_index:_response_stop_index], uitwijking[_response_start_index:_response_stop_index], label="Respons tijd")
+    # plt.plot(t[_response_start_index:_response_stop_index], uitwijking[_response_start_index:_response_stop_index], label="Respons tijd")
     plt.xlabel('Tijd (s)')
     plt.ylabel('Uitwijking (m)')
     plt.title('Uitwijking van de massa')
@@ -102,15 +102,15 @@ def plot_rotatiesnelheid(t, rotatie_snelheid):
     plt.show()
 
 
-def calc_response_time(t, solved_diff_array):
-    max_value = np.max(solved_diff_array)
-    response_start_index = math.ceil(len(t) / 8)
-    response_start_value = math.fabs(solved_diff_array[response_start_index])
-    response_stop_index = np.argmax((solved_diff_array >= (max_value - response_start_value) * 0.63 + response_start_value))
-
-    print("indexes: start-" + str(response_start_index) + " stop-" + str(response_stop_index))
-    print("values: start-" + str(response_start_value) + " stop-" + str(solved_diff_array[response_stop_index]))
-    return t[response_stop_index] - t[response_start_index], response_start_index, response_stop_index
+# def calc_response_time(t, solved_diff_array):
+#     max_value = np.max(solved_diff_array)
+#     response_start_index = math.ceil(len(t) / 8)
+#     response_start_value = math.fabs(solved_diff_array[response_start_index])
+#     response_stop_index = np.argmax((solved_diff_array >= (max_value - response_start_value) * 0.63 + response_start_value))
+#
+#     print("indexes: start-" + str(response_start_index) + " stop-" + str(response_stop_index))
+#     print("values: start-" + str(response_start_value) + " stop-" + str(solved_diff_array[response_stop_index]))
+#     return t[response_stop_index] - t[response_start_index], response_start_index, response_stop_index
 
 
 time_array, dt = simulation_timeline()
@@ -122,6 +122,6 @@ coriolis_force_array = force_coriolis_function(time_array, rotatie_snelheid_arr)
 solved_differential_array = solve_differential_equation(time_array, dt, coriolis_force_array)
 
 
-response_time, response_start_index, response_stop_index = calc_response_time(t=time_array, solved_diff_array=solved_differential_array)
-plot_simulation(t=time_array, uitwijking=solved_differential_array, _response_start_index=response_start_index, _response_stop_index=response_stop_index)
-print("Respons tijd: " + str(response_time))
+# response_time, response_start_index, response_stop_index = calc_response_time(t=time_array, solved_diff_array=solved_differential_array)
+plot_simulation(t=time_array, uitwijking=solved_differential_array)
+# print("Respons tijd: " + str(response_time))
