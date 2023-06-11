@@ -1,5 +1,3 @@
-import math
-
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -9,7 +7,9 @@ nu_drive = 4000
 massa = 4.9e-09
 # dempingscoëfficiënt van sense mode (kg/s)
 gamma = 1.17e-06
+
 # Geschaalde Coriolis kracht N s/rad
+# Ook wel f_max
 f_coriolis = 8e-12
 
 k = 3.095
@@ -46,7 +46,7 @@ def simulation_timeline():
 
 
 # Solving: 𝑚𝑥̈+ 𝛾𝑥̇ + 𝑘𝑥 = F_coriolis
-def solve_differential_equation(t_array, delta_time, force_coriolis_array):
+def solve_differential_equation(t_array, delta_time, force_coriolis_array, _gamma):
     # Boundary conditions
     x0 = 0
     v0 = 0
@@ -65,7 +65,7 @@ def solve_differential_equation(t_array, delta_time, force_coriolis_array):
         force = force_coriolis_array[i]
         # v'(t) = ((F - c * v - k * x) / m)
         # v(t+dt) = v(t) + dt * v'(t)
-        v_array[i + 1] = v + delta_time * ((force - gamma * v - k * x) / massa)
+        v_array[i + 1] = v + delta_time * ((force - _gamma * v - k * x) / massa)
 
         # x(t+dt) = x(t) + dt * v(t)
         x_array[i + 1] = x + delta_time * v
@@ -73,11 +73,13 @@ def solve_differential_equation(t_array, delta_time, force_coriolis_array):
     return x_array
 
 
-def plot_simulation(t, uitwijking):
+def plot_simulation(t, normal_gamma_values, small_gamma_values, big_gamma_values):
     print("Totaal tijd: " + str(t[-1]))
     # Plot de uitwijking van de massa
-    plt.plot(t, uitwijking, label="Geheel")
-    # plt.plot(t[_response_start_index:_response_stop_index], uitwijking[_response_start_index:_response_stop_index], label="Respons tijd")
+    plt.plot(t, small_gamma_values, label="Kleine gamma")
+    plt.plot(t, normal_gamma_values, label="Normale gamma")
+    plt.plot(t, big_gamma_values, label="Grote gamma")
+    plt.legend()
     plt.xlabel('Tijd (s)')
     plt.ylabel('Uitwijking (m)')
     plt.title('Uitwijking van de massa')
@@ -102,26 +104,13 @@ def plot_rotatiesnelheid(t, rotatie_snelheid):
     plt.show()
 
 
-# def calc_response_time(t, solved_diff_array):
-#     max_value = np.max(solved_diff_array)
-#     response_start_index = math.ceil(len(t) / 8)
-#     response_start_value = math.fabs(solved_diff_array[response_start_index])
-#     response_stop_index = np.argmax((solved_diff_array >= (max_value - response_start_value) * 0.63 + response_start_value))
-#
-#     print("indexes: start-" + str(response_start_index) + " stop-" + str(response_stop_index))
-#     print("values: start-" + str(response_start_value) + " stop-" + str(solved_diff_array[response_stop_index]))
-#     return t[response_stop_index] - t[response_start_index], response_start_index, response_stop_index
-
-
 time_array, dt = simulation_timeline()
 rotatie_snelheid_arr = rotatie_snelheid_array(time_array)
 plot_rotatiesnelheid(time_array, rotatie_snelheid_arr)
-
 coriolis_force_array = force_coriolis_function(time_array, rotatie_snelheid_arr)
 
-solved_differential_array = solve_differential_equation(time_array, dt, coriolis_force_array)
+solved_differential_normal_gamma_array = solve_differential_equation(time_array, dt, coriolis_force_array, gamma)
+solved_differential_small_gamma_array = solve_differential_equation(time_array, dt, coriolis_force_array, gamma / 2)
+solved_differential_big_gamma_array = solve_differential_equation(time_array, dt, coriolis_force_array, gamma * 2)
 
-
-# response_time, response_start_index, response_stop_index = calc_response_time(t=time_array, solved_diff_array=solved_differential_array)
-plot_simulation(t=time_array, uitwijking=solved_differential_array)
-# print("Respons tijd: " + str(response_time))
+plot_simulation(t=time_array, normal_gamma_values=solved_differential_normal_gamma_array, small_gamma_values=solved_differential_small_gamma_array, big_gamma_values=solved_differential_big_gamma_array)
