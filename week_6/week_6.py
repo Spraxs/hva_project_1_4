@@ -14,12 +14,25 @@ f_coriolis = 8e-12
 
 k = 3.095
 
+
 def rotatie_snelheid_array(t):
     min_value = 2
     max_value = 5
     array = np.zeros(len(t))
     for i in range(0, len(t)):
         if i < len(t) / 8 or i > len(t) * 5 / 8:
+            array[i] = min_value
+        else:
+            array[i] = max_value
+    return array
+
+
+def rotatie_snelheid_array_2(t):
+    min_value = 0
+    max_value = 0.1
+    array = np.zeros(len(t))
+    for i in range(0, len(t)):
+        if i < len(t) / 8 * 4:
             array[i] = min_value
         else:
             array[i] = max_value
@@ -73,12 +86,12 @@ def solve_differential_equation(t_array, delta_time, force_coriolis_array, _gamm
     return x_array
 
 
-def plot_simulation(t, normal_gamma_values, small_gamma_values, big_gamma_values):
+def plot_simulation(t, normal_gamma_values):
     print("Totaal tijd: " + str(t[-1]))
     # Plot de uitwijking van de massa
-    plt.plot(t, small_gamma_values, label="Kleine gamma")
+    # plt.plot(t, small_gamma_values, label="Kleine gamma")
     plt.plot(t, normal_gamma_values, label="Normale gamma")
-    plt.plot(t, big_gamma_values, label="Grote gamma")
+    # plt.plot(t, big_gamma_values, label="Grote gamma")
     plt.legend()
     plt.xlabel('Tijd (s)')
     plt.ylabel('Uitwijking (m)')
@@ -105,12 +118,12 @@ def plot_rotatiesnelheid(t, rotatie_snelheid):
 
 
 time_array, dt = simulation_timeline()
-rotatie_snelheid_arr = rotatie_snelheid_array(time_array)
+rotatie_snelheid_arr = rotatie_snelheid_array_2(time_array)
 plot_rotatiesnelheid(time_array, rotatie_snelheid_arr)
 coriolis_force_array = force_coriolis_function(time_array, rotatie_snelheid_arr)
 
 solved_differential_normal_gamma_array = solve_differential_equation(time_array, dt, coriolis_force_array, gamma)
-solved_differential_small_gamma_array = solve_differential_equation(time_array, dt, coriolis_force_array, gamma / 2)
-solved_differential_big_gamma_array = solve_differential_equation(time_array, dt, coriolis_force_array, gamma * 2)
+# solved_differential_small_gamma_array = solve_differential_equation(time_array, dt, coriolis_force_array, gamma / 2)
+# solved_differential_big_gamma_array = solve_differential_equation(time_array, dt, coriolis_force_array, gamma * 2)
 
-plot_simulation(t=time_array, normal_gamma_values=solved_differential_normal_gamma_array, small_gamma_values=solved_differential_small_gamma_array, big_gamma_values=solved_differential_big_gamma_array)
+plot_simulation(t=time_array, normal_gamma_values=solved_differential_normal_gamma_array)
