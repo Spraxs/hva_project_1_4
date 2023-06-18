@@ -13,5 +13,7 @@ Gebruik gemaakt van: matplotlib & pandas.
 ## Memo 4: sense mode
 - [week_6.py](./week_6/week_6.py) bevat de code die gebruikt is om de opdrachten uit te voeren die tijdens het maken van memo 4 aan orde kwamen;
 
+## Memo 5: complete doorrekening gyroscoop
+- [memo 5.py](./memo 5/memo 5.py) bevat de code die gebruikt is om de opdrachten uit te voeren die tijdens het maken van memo 5 aan orde kwamen;
 
 Gebruik gemaakt van: numpy, matplotlib & pandas.
