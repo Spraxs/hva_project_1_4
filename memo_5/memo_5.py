@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -41,23 +43,25 @@ k_sense = 0.9664
 gamma_sense = 1.538e-06
 
 
-def simulation_timeline():
-    # Totale simulatieduur (s)
-    t_max = 0.2
-    # Tijdstap (aantal tijdstappen aanpassen voor gewenste nauwkeurigheid)
-    dt = 0.000000007
-    return np.arange(0, t_max, dt), dt
+def simulation_timeline(m, k, Nosc, Npo):
+    f = 1 / (2 * np.pi * math.sqrt(m / k))
+    w = 2 * np.pi * f
+    T = 1 / f
+    dt = T / Npo
+    t = np.arange(0, Nosc * T, dt)
+    return t, dt, w, T
 
+def simulate_voltage(t):
+    Vt = np.zeros(len(t))
+    for i in range(0, len(t)):
+        Vt[i] = (V_0 + V_drive * np.cos(w_drive * t[i]))
+    return Vt
 
 def simulate_electrical_force(t):
-    array = np.zeros(len(t))
-    x_constant = epsilon_zero * k_drive * w / (2*d_drive)
-    drive_rotation_speed = 2 * np.pi * v_drive
+    F_el = np.zeros(len(t))
     for i in range(0, len(t)):
-        # Ω (rad / s)
-        array[i] = x_constant * (3*V_0**2/2 + 2*V_0*V_drive*np.cos(drive_rotation_speed * t[i]) +
-                                 V_0**2/2 * np.cos(2*drive_rotation_speed * t[i]))
-    return array
+        F_el[i] = 2 * N_drive * epsilon_zero * w * V_0 * V_drive * np.cos(w_drive * t[i]) / (d_drive)
+    return F_el
 
 
 # Solving: 𝑚𝑥̈+ 𝛾𝑥̇ + 𝑘𝑥 = F_el
@@ -126,42 +130,42 @@ def simulate_sense_mode_by_coriolis_force(t_array, dt, force_coriolis_array):
     return x_array
 
 
-def plot_simulation_uitwijking_drive(t, uitwijking):
+def plot_simulation_voltage(t, voltage_array):
+    # Plot de input spanning tegen tijd
+    plt.plot(t, voltage_array)
+    plt.legend()
+    plt.xlabel('Tijd (s)')
+    plt.ylabel('Voltage (V)')
+    plt.title('Input Spanning')
+    plt.show()
+
+
+def plot_simulation_electrical_force(t, uitwijking_drive):
+    # Plot de elektrische kracht
+    plt.plot(t, uitwijking_drive)
+    plt.legend()
+    plt.xlabel('Tijd (s)')
+    plt.ylabel('Elektrische kracht (N)')
+    plt.title('Elektrische kracht')
+    plt.show()
+
+
+def plot_simulation_drive_mode(t, f_el_array):
     # Plot de uitwijking van de massa
-    plt.plot(t, uitwijking)
+    plt.plot(t, f_el_array)
     plt.legend()
     plt.xlabel('Tijd (s)')
     plt.ylabel('Uitwijking (m)')
-    plt.title('Uitwijking van de massa')
+    plt.title('Uitwijking (drive mode)')
     plt.show()
 
 
-def plot_simulation_coriolis_force(t, f_coriolis):
-    # Plot de uitwijking van de massa
-    plt.plot(t, f_coriolis)
-    plt.legend()
-    plt.xlabel('Tijd (s)')
-    plt.ylabel('Coriolis kracht (N)')
-    plt.title('Coriolis kracht')
-    plt.show()
-
-
-def plot_simulation_uitwijking_sense(t, uitwijking_sense):
-    # Plot de uitwijking van de massa
-    plt.plot(t, uitwijking_sense)
-    plt.legend()
-    plt.xlabel('Tijd (s)')
-    plt.ylabel('Uitwijking (m)')
-    plt.title('Uitwijking sense')
-    plt.show()
-
-
-time_line, delta_time = simulation_timeline()
+time_line, delta_time, w_drive, T = simulation_timeline(m_drive, k_drive, 248, 500)
+voltage_array = simulate_voltage(time_line)
 electrical_force_array = simulate_electrical_force(time_line)
-x_drive = simulate_drive_mode_by_electrical_force(time_line, delta_time, electrical_force_array)
-coriolis_force = calculate_coriolis_force(m_drive, x_drive)
-x_sense = simulate_sense_mode_by_coriolis_force(time_line, delta_time, coriolis_force)
 
-plot_simulation_uitwijking_drive(time_line, x_drive)
-plot_simulation_coriolis_force(time_line, coriolis_force)
-plot_simulation_uitwijking_sense(time_line, x_sense)
+plot_simulation_voltage(time_line, voltage_array)
+plot_simulation_electrical_force(time_line, electrical_force_array)
+
+x_drive = simulate_drive_mode_by_electrical_force(time_line, delta_time,electrical_force_array)
+plot_simulation_drive_mode(time_line, x_drive)
