@@ -204,7 +204,7 @@ def plot_x_sense(t, _x_sense_y_axis):
     plt.plot(t, _x_sense_y_axis)
     plt.xlabel('Tijd (s)')
     plt.ylabel('Sense uitwijking Y-as (m)')
-    plt.title('Drive mode uitwijking tegen tijd')
+    plt.title('Sense mode uitwijking tegen tijd')
     plt.show()
 
 
@@ -216,12 +216,18 @@ def plot_sense_current(t, _sense_current):
     plt.show()
 
 
-def print_transmission_coefficients(force_electrical, input_voltage, _x_drive, force_coriolis, _x_sense, _sense_current):
+def print_transmission_coefficients_and_max_values(force_electrical, input_voltage, _x_drive, force_coriolis, _x_sense, _sense_current):
     print("TC 1", np.max(force_electrical) / np.max(input_voltage))
     print("TC 2", np.max(_x_drive) / np.max(force_electrical))
     print("TC 3", np.max(force_coriolis) / np.max(_x_drive))
     print("TC 4", np.max(_x_sense) / np.max(force_coriolis))
     print("TC 5", np.max(_sense_current) / np.max(_x_sense))
+
+    print("F_el", np.max(force_electrical))
+    print("x_drive", np.max(_x_drive))
+    print("F_coriolis", np.max(force_coriolis))
+    print("x_sense", np.max(_x_sense))
+    print("I_sense", np.max(_sense_current))
 
 
 time_line, delta_time, w_drive, T = simulation_timeline(m_drive, k_drive, 300, 600)
@@ -249,5 +255,5 @@ plot_x_sense(time_line, x_sense_y_axis)
 sense_current = simulate_sense_current(time_line, x_sense_y_axis)
 plot_sense_current(time_line, sense_current)
 
-# Print Transmissie coefficienten
-print_transmission_coefficients(electrical_force_array, voltage_array, x_drive, coriolis_force, x_sense_y_axis, sense_current)
+# Print results
+print_transmission_coefficients_and_max_values(electrical_force_array, voltage_array, x_drive, coriolis_force, x_sense_y_axis, sense_current)
